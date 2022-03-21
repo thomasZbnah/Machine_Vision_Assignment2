@@ -1,0 +1,55 @@
+"imports"
+
+import numpy as np
+import matplotlib.pyplot as plt
+from math import sqrt
+from skimage.color import rgb2hsv
+from skimage.color import rgb2gray
+from skimage.color import hsv2rgb
+from skimage.transform import resize
+from scikitimage import skimage.color.rgb2hsv
+import scipy.ndimage
+import imutils
+import argparse
+import os
+import math
+from PIL import Image
+
+from classification import training, getLabel
+
+SIGNS = ["40 km/h",
+        "50 km/h",
+        "60 km/h",
+        "80 km/h",
+        "100 km/h",
+        "120 km/h"]
+        
+"Step 1 - Load the image and convert to HSV"
+
+colorsys.rgb_to_hsv(px[2], px[1], px[0})
+
+    def remove_other_color(img):
+    frame = cv2.GaussianBlur(img, (3,3), 0) 
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    # define range of blue color in HSV
+    lower_blue = np.array([100,128,0])
+    upper_blue = np.array([215,255,255])
+    # Threshold the HSV image to get only blue colors
+    mask_blue = cv2.inRange(hsv, lower_blue, upper_blue)
+
+    lower_white = np.array([0,0,128], dtype=np.uint8)
+    upper_white = np.array([255,255,255], dtype=np.uint8)
+    # Threshold the HSV image to get only blue colors
+    mask_white = cv2.inRange(hsv, lower_white, upper_white)
+
+    lower_black = np.array([0,0,0], dtype=np.uint8)
+    upper_black = np.array([170,150,50], dtype=np.uint8)
+
+    mask_black = cv2.inRange(hsv, lower_black, upper_black)
+
+    mask_1 = cv2.bitwise_or(mask_blue, mask_white)
+    mask = cv2.bitwise_or(mask_1, mask_black)
+    # Bitwise-AND mask and original image
+    #res = cv2.bitwise_and(frame,frame, mask= mask)
+    return mask
+
