@@ -16,8 +16,9 @@ import imageio
 import matplotlib.pyplot as plt
 from numba import njit    # Have to import the "@njit" decorator from the Numba library.
 from scipy import ndimage, misc
+from PIL import Image, ImageFilter
 
-mpl.rcParams['figure.dpi']= 50
+mpl.rcParams['figure.dpi']= 150
 db = np.load("1-NN-descriptor-vects.npy")
 
 
@@ -92,7 +93,7 @@ def grow_region(im, L, r, c, curr_label):
         if cp1 < C  and im[r,cp1] != 0 and L[r,cp1] == 0: stack.append((r,cp1))
     return curr_label + 1
 
-image4 = plt.imread('image3.png',False)
+image4 = plt.imread('image5.png',False)
 R,C = image4.shape[0],image4.shape[1]
 imutils.imshow(image4)
 image = np.zeros((image4.shape[0],image4.shape[1],3),dtype = "float32")
@@ -101,27 +102,30 @@ image[...,1] = image4[...,1]
 image[...,2] = image4[...,2]
 imutils.imshow(image)
 hsv_image = color.rgb2hsv(image)
-imutils.imshow(hsv_image[...,0])
+imutils.imshow(hsv_image[...,0],colourmap='hsv')
 imutils.imshow(hsv_image[...,1],colourmap='Greys') #cmap='gist_gray'
 imutils.imshow(hsv_image[...,2],colourmap='Greys')
 
 mask_image = np.zeros((image4.shape[0],image4.shape[1]),dtype = "uint8")
 for i in range(0,R):
     for j in range(0,C):
-        if (hsv_image[i,j,0] >= 0.8) and (hsv_image[i,j,1] >= 0.5): #good settings
+        #if (hsv_image[i,j,0] >= 0.9) or (hsv_image[i,j,0] <= 0.1) and (hsv_image[i,j,1] >= 0.5):
+        if (hsv_image[i,j,0] >= 0.9) or (hsv_image[i,j,0] <= 0.1) and (hsv_image[i,j,1] >= 0.5): #good settings
             mask_image[i,j] = 255
 imutils.imshow(mask_image)
 
-filtmasked_image = ndimage.maximum_filter(mask_image, size=5)
+filtmasked_image = ndimage.binary_erosion(mask_image, structure=np.ones((2,2))).astype(mask_image.dtype)
+filtmasked_image = ndimage.maximum_filter(filtmasked_image, size=5)
 
-
+imutils.imshow(filtmasked_image)
 c_th, c_sB2 = otsu(filtmasked_image)
 image_binary = filtmasked_image > c_th
 image_lab = label_regions(image_binary)
 
-# plt.figure(figsize=(10,10))
-# plt.imshow(image_lab, cmap='nipy_spectral', interpolation='nearest')  # Use "interpolation='nearest'" to stop interpolation artifacts
-# plt.title("Labeled Cell Image"); 
+
+plt.figure(figsize=(10,10))
+plt.imshow(image_lab, cmap='nipy_spectral', interpolation='nearest')  # Use "interpolation='nearest'" to stop interpolation artifacts
+plt.title("Labeled Cell Image"); 
 maxsize = 0
 for i in range(1,np.max(image_lab)+1):
     if(np.nonzero(image_lab==i)[0].size>maxsize):
