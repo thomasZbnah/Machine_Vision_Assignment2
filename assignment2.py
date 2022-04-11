@@ -8,7 +8,7 @@ Created on Mon Mar 21 15:16:46 2022
 import numpy as np 
 import imutils
 import matplotlib as mpl
-from skimage.transform import rotate ## Image rotation routine
+import skimage.transform as sktrsfm
 import skimage.color as color
 import scipy.fftpack as fft          ## Fast Fourier Transform
 import scipy.misc                    ## Save images
@@ -93,7 +93,10 @@ def grow_region(im, L, r, c, curr_label):
         if cp1 < C  and im[r,cp1] != 0 and L[r,cp1] == 0: stack.append((r,cp1))
     return curr_label + 1
 
-image4 = plt.imread('image5.png',False)
+
+###########################################################################
+
+image4 = plt.imread('image.png',False)
 R,C = image4.shape[0],image4.shape[1]
 imutils.imshow(image4)
 image = np.zeros((image4.shape[0],image4.shape[1],3),dtype = "float32")
@@ -110,7 +113,7 @@ mask_image = np.zeros((image4.shape[0],image4.shape[1]),dtype = "uint8")
 for i in range(0,R):
     for j in range(0,C):
         #if (hsv_image[i,j,0] >= 0.9) or (hsv_image[i,j,0] <= 0.1) and (hsv_image[i,j,1] >= 0.5):
-        if (hsv_image[i,j,0] >= 0.9) or (hsv_image[i,j,0] <= 0.1) and (hsv_image[i,j,1] >= 0.5): #good settings
+        if (hsv_image[i,j,0] >= 0.95) or (hsv_image[i,j,0] <= 0.1) and (hsv_image[i,j,1] >= 0.5) : #good settings
             mask_image[i,j] = 255
 imutils.imshow(mask_image)
 
@@ -122,31 +125,42 @@ c_th, c_sB2 = otsu(filtmasked_image)
 image_binary = filtmasked_image > c_th
 image_lab = label_regions(image_binary)
 
-
-plt.figure(figsize=(10,10))
-plt.imshow(image_lab, cmap='nipy_spectral', interpolation='nearest')  # Use "interpolation='nearest'" to stop interpolation artifacts
-plt.title("Labeled Cell Image"); 
 maxsize = 0
 for i in range(1,np.max(image_lab)+1):
     if(np.nonzero(image_lab==i)[0].size>maxsize):
         maxsize = np.nonzero(image_lab==i)[0].size
 
+signs = []
+for lab in range(1, np.max(image_lab)+1):
+    if (np.nonzero(image_lab == lab)[0].size > maxsize*0.35):
+        a = np.min(np.nonzero(image_lab == lab)[0])
+        b = np.max(np.nonzero(image_lab == lab)[0])
+        c = np.min(np.nonzero(image_lab == lab)[1])
+        d = np.max(np.nonzero(image_lab == lab)[1])
+        if ((b-a)/(d-c) > 2/3) and ((b-a)/(d-c) < 3/2):
+            zero = np.zeros((b-a, d-c, 3), dtype="float32")
+            print("zob")
+            for i in range(a, b):
+                for j in range(c, d):
+                    zero[i-a, j-c, 0] = image[i, j, 0]
+                    zero[i-a, j-c, 1] = image[i, j, 1]
+                    zero[i-a, j-c, 2] = image[i, j, 2]
+            signs.append(zero)
+            imutils.imshow(zero)
+            print("append")
 
-for lab in range(1,np.max(image_lab)+1):
-    signs = []
-    if (np.nonzero(image_lab==lab)[0].size>maxsize*0.35):
-        a = np.min(np.nonzero(image_lab==lab)[0])
-        b = np.max(np.nonzero(image_lab==lab)[0])
-        c = np.min(np.nonzero(image_lab==lab)[1])
-        d = np.max(np.nonzero(image_lab==lab)[1])
-        zero = np.zeros((b-a,d-c,3),dtype = "float32")
-        for i in range(a,b):
-            for j in range(c,d):
-                zero[i-a,j-c,0] = image[i,j,0]
-                zero[i-a,j-c,1] = image[i,j,1]
-                zero[i-a,j-c,2] = image[i,j,2]
-        imutils.imshow(zero)
-        signs.append(zero)
+for sign in signs:
+    sign  = color.rgb2gray(sign)
+    sign = sktrsfm.resize(sign, (64,64))
+    print(sign.shape)
+    sign *= 255
+    sign = sign.astype(np.uint8)
+    enhanced_sign = np.zeros(sign.shape, dtype = 'uint8')
+    np.clip(sign * 1.1, 0, 255, enhanced_sign)
+    mean_val = np.average(enhanced_sign)
+    enhanced_sign -= mean_val.astype('uint8')
+    enhanced_sign = enhanced_sign.flatten()
+    
     
     
 
