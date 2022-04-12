@@ -130,6 +130,11 @@ c_th, c_sB2 = otsu(filtmasked_image)
 image_binary = filtmasked_image > c_th
 image_lab = label_regions(image_binary)
 
+#adding colormap to the labelled image
+plt.figure(figsize=(10,10))
+plt.imshow(image_lab, cmap='nipy_spectral', interpolation= 'nearest')
+plt.title("Labelled Cell Image")
+
 #browse the image per label and get the size of the biggest group of pixels
 maxsize = 0
 for i in range(1,np.max(image_lab)+1):
