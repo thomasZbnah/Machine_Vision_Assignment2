@@ -182,6 +182,20 @@ for sign in signs:
     #the image is transformed from a 64x64 matrix to a 4096 dimensions vector
     enhanced_sign = enhanced_sign.flatten()
     
+    normalized_enhanced_sign = (enhanced_sign - min(enhanced_sign)) /(max(enhanced_sign) - min(enhanced_sign))
+    normalized_enhanced_sign = np.array(normalized_enhanced_sign)
+    
+    mat = np.load("1-NN-descriptor-vects.npy")  
+    categories = mat[:,0]
+    template_vector_set = mat[:,1:]     
+
+    distances = np.linalg.norm(template_vector_set - normalized_enhanced_sign, axis=1) 
+
+    k=1
+    nearest_neighbor_ids = distances.argsort()[:k]
+    nearest_neighbor_ids
+    print("The nearest neighbor: ")
+    print(categories[nearest_neighbor_ids])
     
     
 
