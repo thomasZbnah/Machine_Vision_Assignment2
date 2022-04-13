@@ -18,8 +18,6 @@ from numba import njit    # Have to import the "@njit" decorator from the Numba 
 from scipy import ndimage, misc
 from PIL import Image, ImageFilter
 
-#change resolution of displayed images
-mpl.rcParams['figure.dpi']= 150
 
 ##################### functions definitions for labelling images
 def otsu(image):
