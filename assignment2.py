@@ -20,7 +20,6 @@ from PIL import Image, ImageFilter
 
 #change resolution of displayed images
 mpl.rcParams['figure.dpi']= 150
-db = np.load("1-NN-descriptor-vects.npy")
 
 ##################### functions definitions for labelling images
 def otsu(image):
@@ -94,10 +93,11 @@ def grow_region(im, L, r, c, curr_label):
         if cp1 < C  and im[r,cp1] != 0 and L[r,cp1] == 0: stack.append((r,cp1))
     return curr_label + 1
 
+        
 
 ###########################################################################
 
-image4 = plt.imread('image.png',False) #load the image as rgb image
+image4 = plt.imread('image4.png',False) #load the image as rgb image
 R,C = image4.shape[0],image4.shape[1]
 imutils.imshow(image4)
 #the image actually has four channels, so need to make a new 3 channels image
@@ -163,7 +163,11 @@ for lab in range(1, np.max(image_lab)+1):
             #resulting signs are stored in this signs list
             signs.append(zero)
             imutils.imshow(zero)
-
+            
+            
+mat = np.load("1-NN-descriptor-vects.npy")  
+categories = mat[:,0]
+template_vector_set = mat[:,1:]     
 #this loops processes each sign of the signs list for pre processing before using the rol classifier
 for sign in signs:
     #signs become gray
@@ -177,25 +181,38 @@ for sign in signs:
     enhanced_sign = np.zeros(sign.shape, dtype = 'uint8')
     np.clip(sign * 1.1, 0, 255, enhanced_sign)
     #the mean pixel value is removed to eveyr pixel of the image
-    mean_val = np.average(enhanced_sign)
-    enhanced_sign -= mean_val.astype('uint8')
+    # mean_val = np.average(enhanced_sign)
+    # enhanced_sign -= mean_val.astype('uint8')
+    imutils.imshow(enhanced_sign)
     #the image is transformed from a 64x64 matrix to a 4096 dimensions vector
     enhanced_sign = enhanced_sign.flatten()
     
     normalized_enhanced_sign = (enhanced_sign - min(enhanced_sign)) /(max(enhanced_sign) - min(enhanced_sign))
     normalized_enhanced_sign = np.array(normalized_enhanced_sign)
     
-    mat = np.load("1-NN-descriptor-vects.npy")  
-    categories = mat[:,0]
-    template_vector_set = mat[:,1:]     
+    # n_index = knn(normalized_enhanced_sign,template_vector_set)
+    
+    min_euclidian_distance = 10000
+    nearest_index = -1
+    for i in range(0,len(template_vector_set)):
+        distance = 0.0
+        for j in range(0,len(template_vector_set[i])):
+            distance+=(normalized_enhanced_sign[j]-template_vector_set[i][j])**2
+        euclidian_distance = np.sqrt(distance)
+        if (euclidian_distance<min_euclidian_distance):
+            min_euclidian_distance = euclidian_distance
+            nearest_index = i
+    
+    print("sign value :")
+    print(categories[nearest_index])
 
-    distances = np.linalg.norm(template_vector_set - normalized_enhanced_sign, axis=1) 
+    # distances = np.linalg.norm(template_vector_set - normalized_enhanced_sign, axis=1) 
 
-    k=1
-    nearest_neighbor_ids = distances.argsort()[:k]
-    nearest_neighbor_ids
-    print("The nearest neighbor: ")
-    print(categories[nearest_neighbor_ids])
+    # k=1
+    # nearest_neighbor_ids = distances.argsort()[:k]
+    # nearest_neighbor_ids
+    # print("The nearest neighbor: ")
+    # print(categories[nearest_neighbor_ids])
     
     
 
