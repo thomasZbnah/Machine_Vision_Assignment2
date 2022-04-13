@@ -190,21 +190,21 @@ for sign in signs:
     normalized_enhanced_sign = (enhanced_sign - min(enhanced_sign)) /(max(enhanced_sign) - min(enhanced_sign))
     normalized_enhanced_sign = np.array(normalized_enhanced_sign)
     
-    # n_index = knn(normalized_enhanced_sign,template_vector_set)
     
-    min_euclidian_distance = 10000
-    nearest_index = -1
-    for i in range(0,len(template_vector_set)):
+    min_euclidian_distance = 10000 #unreachable value for first euclidian distance as we're looking for a min value
+    nearest_index = -1 #here we're setting the index corresponding to the minimum distance value in the dataset (-1 is an impossible value)
+    for i in range(0,len(template_vector_set)): #☺browse every vector of the dataset
         distance = 0.0
-        for j in range(0,len(template_vector_set[i])):
+        for j in range(0,len(template_vector_set[i])): #calctulate the euclidian distance bewteen the 2 4096 dimensions vectors
             distance+=(normalized_enhanced_sign[j]-template_vector_set[i][j])**2
         euclidian_distance = np.sqrt(distance)
         if (euclidian_distance<min_euclidian_distance):
+            # get the minimum euclidian distance and the corresponding index in the dataset
             min_euclidian_distance = euclidian_distance
             nearest_index = i
     
     print("sign value :")
-    print(categories[nearest_index])
+    print(categories[nearest_index]) #print the speed value linked to the nearest neighbor. 
 
     # distances = np.linalg.norm(template_vector_set - normalized_enhanced_sign, axis=1) 
 
